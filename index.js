@@ -43,6 +43,30 @@ app.post("/webhook", async function (req, res) {
     console.error("เกิดข้อผิดพลาด:", error);
   }
 });
+app.get("/webhook", async function (req, res) {
+  try {
+    res.send("HTTP POST request received!"); // ตอบกลับทันที
+
+    const event = req.body.events?.[0];
+
+    if (!event) {
+      return;
+    }
+
+    console.log("Received Event:", event);
+
+    // บันทึก event ลงไฟล์
+    fs.appendFile(filePath, JSON.stringify(event, null, 2) + "\n\n", (err) => {
+      if (err) {
+        console.error("Error writing to file:", err);
+      }
+    });
+
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาด:", error);
+  }
+});
+
 
 // แสดงเนื้อหาไฟล์ผ่าน API
 app.get("/", (req, res) => {
