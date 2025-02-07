@@ -4,25 +4,26 @@ const path = require("path");
 const https = require("https");
 
 const app = express();
-app.use(express.json()); // รองรับ JSON body
+app.use(express.json());
 
 const filePath = path.join(__dirname, "events.txt");
 
-// โหลด SSL Certificate และ Key
-const options = {
-  key: fs.readFileSync("/path/to/your/private-key.key"), // 🔹 ใส่ path ไฟล์ key
-  cert: fs.readFileSync("/path/to/your/certificate.crt"), // 🔹 ใส่ path ไฟล์ certificate
+// โหลดใบรับรอง SSL ของ Let's Encrypt
+const sslOptions = {
+    key: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/privkey.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/fullchain.pem")
 };
 
 // Webhook รับ event จาก LINE
 app.post("/webhook", async function (req, res) {
-  console.log(req.body);
-
   try {
-    res.send("HTTP POST request received!");
+    res.send("HTTP POST request received!"); // ตอบกลับทันที
 
-    const event = req.body;
-    if (!event) return;
+    const event = req.body.events?.[0];
+
+    if (!event) {
+      return;
+    }
 
     console.log("Received Event:", event);
 
@@ -50,6 +51,6 @@ app.get("/", (req, res) => {
 
 // เริ่มเซิร์ฟเวอร์ HTTPS
 const PORT = process.env.PORT || 25680;
-https.createServer(options, app).listen(PORT, () => {
-  console.log(`🚀 HTTPS Server running on port ${PORT}`);
+https.createServer(sslOptions, app).listen(PORT, () => {
+  console.log(`🚀 HTTPS Server running on https://9net-beacon.mungkud.me:${PORT}`);
 });
