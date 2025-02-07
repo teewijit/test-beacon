@@ -14,6 +14,11 @@ const sslOptions = {
     cert: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/fullchain.pem")
 };
 
+// ✅ **เพิ่ม /test สำหรับตรวจสอบว่าเซิร์ฟเวอร์ทำงาน**
+app.get("/test", (req, res) => {
+    res.json({ status: "success", message: "🚀 Server is running!" });
+});
+
 // Webhook รับ event จาก LINE
 app.post("/webhook", async function (req, res) {
   try {
