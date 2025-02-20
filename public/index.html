@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beacon Campaigns & Events</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Chakra Petch', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .timestamp {
+            white-space: nowrap;
+        }
+
+        .btn a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .btn a:hover {
+            text-decoration: none;
+        }
+
+        .table-container {
+            margin-top: 30px;
+        }
+
+        .btn {
+            font-size: 14px;
+        }
+
+        .edit-btn,
+        .del-btn {
+            margin-right: 5px;
+        }
+
+        .btn-warning {
+            background-color: #f0ad4e;
+        }
+
+        .btn-danger {
+            background-color: #d9534f;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- ปุ่มเพิ่ม campaign -->
+        <h1>Beacon Campaigns & Events</h1>
+
+        <div class="table-container">
+            <h2>Campaigns</h2>
+            <button class="btn btn-primary mb-3"><a href="campaign">เพิ่ม campaign</a></button>
+            <table id="campaignTable" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>UUID</th>
+                        <th>ชื่อแคมเปญ</th>
+                        <th>ข้อความ</th>
+                        <th>วันเวลาเริ่ม</th>
+                        <th>วันเวลาสิ้นสุด</th>
+                        <th>วันเวลาที่สร้าง</th>
+                        <th>สถานะ</th>
+                        <th>action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <hr>
+        <div class="table-container">
+            <h2>Events</h2>
+            <table id="eventTable" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>UUID</th>
+                        <th>hwid</th>
+                        <th>สัญญาณ</th>
+                        <th>ประเภท</th>
+                        <th>userId</th>
+                        <th>โหมด</th>
+                        <th>วันเวลาที่ได้รับสัญญาณ</th>
+                        <!-- <th>การดำเนินการ</th> -->
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function deleteCampaign(campaignId) {
+            Swal.fire({
+                title: 'คุณแน่ใจหรือไม่?',
+                text: "ข้อมูลนี้จะถูกลบอย่างถาวร!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ลบ',
+                cancelButtonText: 'ยกเลิก',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/api/campaign/del/${campaignId}`, {
+                        method: 'GET' // assuming DELETE method is used to delete the campaign
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                window.location.href = "/dashboard"; // เปลี่ยนไปหน้า dashboard
+                            } else {
+                                Swal.fire(
+                                    'เกิดข้อผิดพลาด!',
+                                    'ไม่สามารถลบข้อมูลได้',
+                                    'error'
+                                );
+                            }
+                        })
+                        .catch(error => {
+                            console.error('เกิดข้อผิดพลาด:', error);
+                            Swal.fire(
+                                'เกิดข้อผิดพลาด!',
+                                'ไม่สามารถลบข้อมูลได้',
+                                'error'
+                            );
+                        });
+                }
+            });
+        }
+
+        $(document).ready(function () {
+
+            // ตาราง campaign
+            const campaignTable = $('#campaignTable').DataTable({
+                ajax: {
+                    url: '/api/campaign',
+                    dataSrc: ''
+                },
+                columns: [
+                    // UUID (assuming you have a field like 'uuid' in your data)
+                    {
+                        data: 'id',
+                        defaultContent: 'N/A'
+                    },
+                    // แสดงชื่อแคมเปญ
+                    {
+                        data: 'c_name',
+                        defaultContent: 'N/A'
+                    },
+                    // แสดงข้อความแคมเปญ
+                    {
+                        data: 'c_data',
+                        defaultContent: 'N/A'
+                    },
+                    // แสดงวันเวลาเริ่ม
+                    {
+                        data: 'd_start',
+                        render: function (data, type, row) {
+                            if (!data || !row.d_start_time) return 'ไม่พบข้อมูล';
+                            const date = new Date(data);
+                            const startTime = row.d_start_time.split(':'); // Assume time format HH:MM
+                            date.setHours(startTime[0], startTime[1]); // Set hours and minutes based on d_start_time
+
+                            const hours = date.getHours().toString().padStart(2, '0');
+                            const minutes = date.getMinutes().toString().padStart(2, '0');
+                            const seconds = date.getSeconds().toString().padStart(2, '0');
+                            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} เวลา ${hours}:${minutes}:${seconds}`;
+                        }
+                    },
+                    // แสดงวันเวลาสิ้นสุด
+                    {
+                        data: 'd_end',
+                        render: function (data, type, row) {
+                            if (!data || !row.d_end_time) return 'ไม่พบข้อมูล';
+                            const date = new Date(data);
+                            const endTime = row.d_end_time.split(':'); // Assume time format HH:MM
+                            date.setHours(endTime[0], endTime[1]); // Set hours and minutes based on d_end_time
+
+                            const hours = date.getHours().toString().padStart(2, '0');
+                            const minutes = date.getMinutes().toString().padStart(2, '0');
+                            const seconds = date.getSeconds().toString().padStart(2, '0');
+                            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} เวลา ${hours}:${minutes}:${seconds}`;
+                        }
+                    },
+                    // แสดง d_create (เวลาที่ได้รับข้อมูล)
+                    {
+                        data: 'd_create',
+                        render: function (data, type, row) {
+                            if (!data) return 'ไม่พบข้อมูล';
+                            const date = new Date(data);
+                            const day = String(date.getDate()).padStart(2, '0'); // วัน (02)
+                            const month = String(date.getMonth() + 1).padStart(2, '0'); // เดือน (02)
+                            const year = date.getFullYear(); // ปี (2025)
+                            const hours = String(date.getHours()).padStart(2, '0'); // ชั่วโมง (06)
+                            const minutes = String(date.getMinutes()).padStart(2, '0'); // นาที (31)
+
+                            // คืนค่าที่แปลงแล้วในรูปแบบ วว/ดด/ปปปป ชั่วโมง:นาที
+                            return `${day}/${month}/${year} ${hours}:${minutes}`;
+                        }
+                    },
+                    // แสดงข้อความแคมเปญ
+                    {
+                        data: 'e_status',
+                        defaultContent: 'N/A'
+                    },
+                    // Add a column for the action button
+                    {
+                        data: 'id', // Assuming 'id' is the field that holds the unique identifier
+                        render: function (data, type, row) {
+                            return `
+                                    <button class="btn btn-warning btn-sm edit-btn" data-id="${data}" onclick="window.location.href='/campaign/${data}'">แก้ไข</button>
+                                    <button class="btn btn-danger btn-sm del-btn" data-id="${data}" onclick="deleteCampaign('${data}')">ลบ</button>`;
+                        }
+                    },
+
+                ],
+                order: [[0, 'desc']],
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                language: {
+                    "lengthMenu": "แสดงข้อมูล _MENU_ รายการ",
+                    "zeroRecords": "ไม่พบข้อมูลที่ต้องการ",
+                    "info": "แสดง _PAGE_ จาก _PAGES_ หน้า ( _TOTAL_ รายการ )",
+                    "infoEmpty": "ไม่พบข้อมูลที่ต้องการ",
+                    "processing": "กำลังประมวลผล...",
+                    "infoFiltered": "( กรองข้อมูลทั้งหมดจาก _MAX_ รายการ )",
+                    select: {
+                        rows: {
+                            _: '%d รายการที่เลือก',
+                            0: '',
+                        }
+                    },
+                    "search": 'ค้นหา',
+                    paginate: {
+                        'previous': 'ย้อนกลับ',
+                        'next': 'ถัดไป'
+                    },
+                }
+            });
+
+            // ตาราง event
+            const eventTable = $('#eventTable').DataTable({
+                ajax: {
+                    url: '/api/events',
+                    dataSrc: ''
+                },
+                columns: [
+                    // UUID (assuming you have a field like 'uuid' in your data)
+                    {
+                        data: 'uuid',
+                        defaultContent: 'N/A'
+                    },
+                    // แสดง hwid
+                    {
+                        data: 'beacon',
+                        render: function (data, type, row) {
+                            if (!data || !data.hwid) return 'ไม่พบข้อมูล';
+                            return data.hwid;
+                        }
+                    },
+                    // แสดงประเภท beacon
+                    {
+                        data: 'beacon',
+                        render: function (data, type, row) {
+                            if (!data || !data.type) return 'ไม่พบข้อมูล';
+                            return data.type;
+                        }
+                    },
+                    // แสดง source type
+                    {
+                        data: 'source',
+                        render: function (data, type, row) {
+                            if (!data || !data.type) return 'ไม่พบข้อมูล';
+                            return data.type;
+                        }
+                    },
+                    // แสดง userId
+                    {
+                        data: 'source',
+                        render: function (data, type, row) {
+                            if (!data || !data.userId) return 'ไม่พบข้อมูล';
+                            return data.userId;
+                        }
+                    },
+                    // แสดงข้อความแคมเปญ (mode)
+                    {
+                        data: 'mode',
+                        defaultContent: 'N/A'
+                    },
+                    // แสดง timestamp (เวลาที่ได้รับข้อมูล)
+                    {
+                        data: 'timestamp',
+                        render: function (data, type, row) {
+                            if (!data) return 'ไม่พบข้อมูล';
+                            // แปลง timestamp ให้เป็นรูปแบบที่ต้องการ (วว/ดด/ปปปป ชั่วโมง:นาที)
+                            const date = new Date(data);
+                            const day = String(date.getDate()).padStart(2, '0'); // วัน (02)
+                            const month = String(date.getMonth() + 1).padStart(2, '0'); // เดือน (02)
+                            const year = date.getFullYear(); // ปี (2025)
+                            const hours = String(date.getHours()).padStart(2, '0'); // ชั่วโมง (06)
+                            const minutes = String(date.getMinutes()).padStart(2, '0'); // นาที (31)
+
+                            // คืนค่าที่แปลงแล้วในรูปแบบ วว/ดด/ปปปป ชั่วโมง:นาที
+                            return `${day}/${month}/${year} ${hours}:${minutes}`;
+                        }
+                    },
+                    // Add a column for the action button
+                    // {
+                    //     data: 'uuid', // Assuming 'uuid' is the field that holds the unique identifier
+                    //     render: function (data, type, row) {
+                    //         return `
+                    // <button class="btn btn-danger btn-sm del-btn" data-id="${data}" onclick="deleteCampaign('${data}')">หยุด</button>`;
+                    //     }
+                    // },
+                ],
+                order: [[0, 'asc']],
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                language: {
+                    "lengthMenu": "แสดงข้อมูล _MENU_ รายการ",
+                    "zeroRecords": "ไม่พบข้อมูลที่ต้องการ",
+                    "info": "แสดง _PAGE_ จาก _PAGES_ หน้า ( _TOTAL_ รายการ )",
+                    "infoEmpty": "ไม่พบข้อมูลที่ต้องการ",
+                    "processing": "กำลังประมวลผล...",
+                    "infoFiltered": "( กรองข้อมูลทั้งหมดจาก _MAX_ รายการ )",
+                    select: {
+                        rows: {
+                            _: '%d รายการที่เลือก',
+                            0: '',
+                        }
+                    },
+                    "search": 'ค้นหา',
+                    paginate: {
+                        'previous': 'ย้อนกลับ',
+                        'next': 'ถัดไป'
+                    },
+                }
+            });
+
+        });
+    </script>
+
+</body>
+
+</html>
