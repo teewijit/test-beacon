@@ -22,6 +22,48 @@ const sslOptions = {
   cert: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/fullchain.pem")
 };
 
+app.get("/file/event", (req, res) => {
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Error reading file" });
+    }
+
+    try {
+      // แปลงข้อความเป็น array ของ objects
+      const events = data
+        .split('\n\n')
+        .filter(text => text.trim())
+        .map(text => JSON.parse(text))
+        .reverse(); // เรียงจากใหม่ไปเก่า
+
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: "Error parsing events data" });
+    }
+  });
+});
+
+app.get("/file/campaign", (req, res) => {
+  fs.readFile(filePath_campaign, "utf8", (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Error reading file" });
+    }
+
+    try {
+      // แปลงข้อความเป็น array ของ objects
+      const events = data
+        .split('\n\n')
+        .filter(text => text.trim())
+        .map(text => JSON.parse(text))
+        .reverse(); // เรียงจากใหม่ไปเก่า
+
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: "Error parsing events data" });
+    }
+  });
+});
+
 // ฟังก์ชันสำหรับสร้าง UUID แบบง่ายๆ
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
