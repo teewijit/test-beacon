@@ -25,42 +25,18 @@ const sslOptions = {
 app.get("/file/event", (req, res) => {
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
-      return res.status(500).json({ error: "Error reading file" });
+      return res.status(500).send("Error reading file");
     }
-
-    try {
-      // แปลงข้อความเป็น array ของ objects
-      const events = data
-        .split('\n\n')
-        .filter(text => text.trim())
-        .map(text => JSON.parse(text))
-        .reverse(); // เรียงจากใหม่ไปเก่า
-
-      res.json(events);
-    } catch (error) {
-      res.status(500).json({ error: "Error parsing events data" });
-    }
+    res.type("text/plain").send(data || "No events logged yet.");
   });
 });
 
 app.get("/file/campaign", (req, res) => {
   fs.readFile(filePath_campaign, "utf8", (err, data) => {
     if (err) {
-      return res.status(500).json({ error: "Error reading file" });
+      return res.status(500).send("Error reading file");
     }
-
-    try {
-      // แปลงข้อความเป็น array ของ objects
-      const events = data
-        .split('\n\n')
-        .filter(text => text.trim())
-        .map(text => JSON.parse(text))
-        .reverse(); // เรียงจากใหม่ไปเก่า
-
-      res.json(events);
-    } catch (error) {
-      res.status(500).json({ error: "Error parsing events data" });
-    }
+    res.type("text/plain").send(data || "No events logged yet.");
   });
 });
 
