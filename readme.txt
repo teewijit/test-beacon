@@ -1,4 +1,6 @@
 
+
+*******************************************************************************
 ทำ ssl ที่ port 25680
 const https = require("https");
 // โหลดใบรับรอง SSL ของ Let's Encrypt
@@ -15,7 +17,21 @@ https.createServer(sslOptions, app).listen(PORT, () => {
 
 
 
+*******************************************************************************
+ขั้นตอนการ update
+1.upload file 
+2.stop pm2
+  pm2 list
+  pm2 stop 9net-beacon
+3.สั่งให้ install ใหม่ก่อน ด้วยคำสั่ง
+  npm install
+4.strat server 
+  pm2 start 9net-beacon
+  pm2 restart 9net-beacon
 
+
+*******************************************************************************
+การใช้งาน PM2
 1. ใช้ PM2 (แนะนำ)
 PM2 เป็น Process Manager สำหรับ Node.js ที่ช่วยให้เราสามารถ รัน, รีสตาร์ท, ดู logs และตั้งค่าให้รันอัตโนมัติหลังจากรีบูตเครื่อง ได้ง่าย
 
