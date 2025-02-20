@@ -308,21 +308,21 @@ app.get('/api/campaign/del/:id', (req, res) => {
 // Webhook รับ event จาก LINE
 app.post("/webhook", async function (req, res) {
   try {
-    const event = req.body.events?.[0];
+    const event = req.body;
 
     if (!event) {
       return res.status(400).send("ไม่มีข้อมูล event");
     }
 
     // สร้าง UUID และ timestamp
-    const eventInput = {
-      ...event,
-      uuid: generateUUID(),
-      timestamp: moment().format(),
-    };
+    // const eventInput = {
+    //   ...event,
+    //   uuid: generateUUID(),
+    //   timestamp: moment().format(),
+    // };
 
     // บันทึก event ลงไฟล์
-    fs.appendFile(filePath, JSON.stringify(eventInput, null, 2) + "\n\n", (err) => {
+    fs.appendFile(filePath, JSON.stringify(event, null, 2) + "\n\n", (err) => {
       if (err) {
         console.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล: ", err);
         return res.status(500).send("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -330,9 +330,9 @@ app.post("/webhook", async function (req, res) {
     });
 
     // ตรวจสอบแคมเปญที่กำลัง active และอยู่ในช่วงเวลา
-    await setupCampaignSchedules(eventInput);
+    // await setupCampaignSchedules(eventInput);
 
-    res.status(200).send(eventInput);
+    res.status(200).send(event);
 
   } catch (error) {
     console.error("เกิดข้อผิดพลาด: ", error);
