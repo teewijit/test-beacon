@@ -336,7 +336,7 @@ app.post("/webhook", async function (req, res) {
       const userId = event.source.userId; // รับ userId ของผู้ใช้
 
       if (userMessage === "userid") {
-        await replyMessage(event.replyToken, `🆔 User ID ของคุณคือ: ${userId}`);
+        await sendMessageToLine(userId, `🆔 User ID ของคุณคือ: ${userId}`);
       }
     }
 
