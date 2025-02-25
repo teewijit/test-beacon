@@ -645,14 +645,14 @@ function replyMessage(replyToken, text) {
 
   const options = {
     hostname: 'api.line.me',
-    path: '/v2/bot/message/reply',
+    path: '/v2/bot/message/push',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${channelAccessToken}`
+      'Authorization': `Bearer ${_token}`
     }
   };
-
+  
   // const options = {
   //   hostname: "api.line.me",
   //   port: 443,
