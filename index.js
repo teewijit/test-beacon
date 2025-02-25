@@ -17,10 +17,10 @@ const _token = "Fsyb6SfP42tAxgljMbFGiZtGPuJBxcmRYHgsFFWrm8SYuaiWcXKas+Y3P8Zugasa
 const activeJobs = new Map();
 
 // โหลดใบรับรอง SSL ของ Let's Encrypt
-const sslOptions = {
-  key: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/privkey.pem"),
-  cert: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/fullchain.pem")
-};
+// const sslOptions = {
+//   key: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/privkey.pem"),
+//   cert: fs.readFileSync("/etc/letsencrypt/live/9net-beacon.mungkud.me/fullchain.pem")
+// };
 
 app.get("/file/event", (req, res) => {
   fs.readFile(filePath, "utf8", (err, data) => {
@@ -330,6 +330,15 @@ app.post("/webhook", async function (req, res) {
 
     // ตรวจสอบแคมเปญที่กำลัง active และอยู่ในช่วงเวลา
     await setupCampaignSchedules(eventInput);
+    
+    if (event.type === "message" && event.message.type === "text") {
+      const userMessage = event.message.text.toLowerCase(); // แปลงข้อความเป็นตัวพิมพ์เล็ก
+      const userId = event.source.userId; // รับ userId ของผู้ใช้
+
+      if (userMessage === "userid") {
+        await replyMessage(event.replyToken, `🆔 User ID ของคุณคือ: ${userId}`);
+      }
+    }
 
     res.status(200).send(eventInput);
 
@@ -626,9 +635,47 @@ app.get("/api/events", (req, res) => {
   });
 });
 
+function replyMessage(replyToken, text) {
+  const LINE_ACCESS_TOKEN = "YOUR_LINE_CHANNEL_ACCESS_TOKEN"; // เปลี่ยนเป็น Token ของคุณ
+
+  const data = JSON.stringify({
+    replyToken: replyToken,
+    messages: [{ type: "text", text: text }]
+  });
+
+  const options = {
+    hostname: "api.line.me",
+    port: 443,
+    path: "/v2/bot/message/reply",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(data),
+      "Authorization": `Bearer ${LINE_ACCESS_TOKEN}`
+    }
+  };
+
+  const req = https.request(options, (res) => {
+    let body = "";
+    res.on("data", (chunk) => {
+      body += chunk;
+    });
+    res.on("end", () => {
+      console.log("Response from LINE:", body);
+    });
+  });
+
+  req.on("error", (error) => {
+    console.error("Error sending message:", error);
+  });
+
+  req.write(data);
+  req.end();
+}
+
 // เริ่มเซิร์ฟเวอร์ HTTPS
 const PORT = process.env.PORT || 25680;
-https.createServer(sslOptions, app).listen(PORT, () => {
-// app.listen(PORT, () => {
+// https.createServer(sslOptions, app).listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`🚀 HTTPS Server running on https://9net-beacon.mungkud.me:${PORT}`);
 });
