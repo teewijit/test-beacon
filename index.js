@@ -644,16 +644,26 @@ function replyMessage(replyToken, text) {
   });
 
   const options = {
-    hostname: "api.line.me",
-    port: 443,
-    path: "/v2/bot/message/reply",
-    method: "POST",
+    hostname: 'api.line.me',
+    path: '/v2/bot/message/reply',
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(data),
-      "Authorization": `Bearer ${_token}`
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${channelAccessToken}`
     }
   };
+
+  // const options = {
+  //   hostname: "api.line.me",
+  //   port: 443,
+  //   path: "/v2/bot/message/reply",
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //     "Content-Length": Buffer.byteLength(data),
+  //     "Authorization": `Bearer ${_token}`
+  //   }
+  // };
 
   const req = https.request(options, (res) => {
     let body = "";
