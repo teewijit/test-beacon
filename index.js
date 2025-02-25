@@ -651,7 +651,7 @@ function replyMessage(replyToken, text) {
     headers: {
       "Content-Type": "application/json",
       "Content-Length": Buffer.byteLength(data),
-      "Authorization": `Bearer ${LINE_ACCESS_TOKEN}`
+      "Authorization": `Bearer ${_token}`
     }
   };
 
